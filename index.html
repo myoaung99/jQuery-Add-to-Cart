@@ -205,11 +205,15 @@
       $("#category").on("change", function () {
         $("#search").val("");
         const category = $(this).val();
-        const filteredProduct = products.filter((product) => {
-          return product.category === category;
-        });
+        if (category === "0") {
+          toShow(products);
+        } else {
+          const filteredProduct = products.filter((product) => {
+            return product.category === category;
+          });
 
-        toShow(filteredProduct);
+          toShow(filteredProduct);
+        }
       });
     </script>
   </body>
