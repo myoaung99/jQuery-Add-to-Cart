@@ -41,6 +41,14 @@
       .product:hover img {
         transform: scale(1.05) rotate(-10deg);
       }
+
+      .not-found {
+        margin-top: 30%;
+        width: 100%;
+        font-size: 3rem;
+        color: gray;
+        text-align: center;
+      }
     </style>
   </head>
   <body>
@@ -112,6 +120,9 @@
       function toShow(product) {
         // ဝင်လာတဲ့ array ကို ui ထုတ်ပြတာပါ
         $("#products").empty();
+        if (product.length === 0) {
+          $("#products").append(`<p class="not-found">No such item...</p>`);
+        }
         product.map((product) => {
           $("#products").append(`<div class="col">
             <div class="card product pt-၄" >
@@ -126,7 +137,7 @@
                    <div class="d-flex justify-content-between mt-3 align-items-end">
                     <span class="fw-bold h4 mb-0">$${product.price}</span>
                     <button class="btn btn-outline-primary">
-                      
+
                       Add
                       <i class="fas fa-cart-plus"></i>
                       </button>
@@ -136,13 +147,38 @@
         });
       }
 
+      // add options to category select element
+      function addCategory(products) {
+        let category = [];
+        products.map((product) => {
+          if (!category.includes(product.category)) {
+            console.log(product.category);
+            category.push(product.category);
+          } else {
+            return;
+          }
+        });
+
+        category.map((cate) => {
+          const capitalizeText =
+            cate.charAt(0).toUpperCase() +
+            cate.substring(1, cate.length).toLowerCase();
+          $("#category").append(
+            `<option value="${cate}">${capitalizeText}</option>`
+          );
+        });
+      }
+
       $.get("https://fakestoreapi.com/products", function (data) {
         products = data;
+        console.log(products);
         toShow(products);
+        addCategory(products);
       });
 
       $("#search").on("keyup", function () {
         console.log("type");
+        $("#category").prop("selectedIndex", 0);
         let keyword = $(this).val().toLowerCase();
 
         // $("#products .product").filter(function () {
@@ -157,11 +193,22 @@
 
         let filteredProduct = products.filter(
           (product) =>
-            product.title.toLowerCase().indexOf(keyword) > -1 ||
-            product.description.toLowerCase().indexOf(keyword) > -1 ||
+            product.title.toLowerCase().includes(keyword) ||
+            product.description.toLowerCase().includes(keyword) ||
             product.price === Number(keyword)
         );
         console.log(filteredProduct);
+        toShow(filteredProduct);
+      });
+
+      // select က onchange ဖြစ်သွားတဲ့အခါ
+      $("#category").on("change", function () {
+        $("#search").val("");
+        const category = $(this).val();
+        const filteredProduct = products.filter((product) => {
+          return product.category === category;
+        });
+
         toShow(filteredProduct);
       });
     </script>
