@@ -73,7 +73,7 @@
                       />
                     </div>
                     <div class="">
-                      <select name="" class="form-control" id="category">
+                      <select name="" class="form-select" id="category">
                         <option value="0">All Category</option>
                       </select>
                     </div>
@@ -103,10 +103,16 @@
 
         return str;
       }
-      $.get("https://fakestoreapi.com/products", function (data) {
-        console.log(data);
-        data.map((product) => {
-          console.log(product);
+
+      let products = [];
+
+      // toshow သည် products container ထဲကို append လုပ်တာ ဖြစ်တဲ့အတွက် ရှာပြီးတွေ့တာတွေကိုလည်း
+      // append လုပ်နေတယ် အဲ့တာကြောင့် append/ မထည့်ခင် container ကို အရင် ဘာမှမရှိအောင်
+      //အရင်လုပ်ရမယ်
+      function toShow(product) {
+        // ဝင်လာတဲ့ array ကို ui ထုတ်ပြတာပါ
+        $("#products").empty();
+        product.map((product) => {
           $("#products").append(`<div class="col">
             <div class="card product pt-၄" >
                   <img src="${product.image}" class="card-img-top" alt="..." />
@@ -128,6 +134,35 @@
                   </div>
                 </div></div>`);
         });
+      }
+
+      $.get("https://fakestoreapi.com/products", function (data) {
+        products = data;
+        toShow(products);
+      });
+
+      $("#search").on("keyup", function () {
+        console.log("type");
+        let keyword = $(this).val().toLowerCase();
+
+        // $("#products .product").filter(function () {
+        //   $(this).toggle($(this).text().toLowerCase().indexOf(keyword) > -1);
+        // });
+
+        // space ရိုက်တာတွေ ရှောင်
+        // ၁ လုံးတည်းဆို မရှာသေး
+        if (keyword.trim().length < 2) {
+          return;
+        }
+
+        let filteredProduct = products.filter(
+          (product) =>
+            product.title.toLowerCase().indexOf(keyword) > -1 ||
+            product.description.toLowerCase().indexOf(keyword) > -1 ||
+            product.price === Number(keyword)
+        );
+        console.log(filteredProduct);
+        toShow(filteredProduct);
       });
     </script>
   </body>
