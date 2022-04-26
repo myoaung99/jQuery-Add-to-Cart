@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add to Cart</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+      integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link
+      rel="stylesheet"
+      href="./node_modules/bootstrap/dist/css/bootstrap.css"
+    />
+
+    <style>
+      .product {
+        border: none !important;
+      }
+
+      /* ပုံက ဘောင်ထဲမှာရှိနေပြီး အပြင်ကို ကျော်ထွက်နေတဲ့ ပုံလုပ်ချင်လို့
+      title ကနေ အပေါ်ကို ကန်ပြီး နေရာလွတ်ရအောင်ယူ 
+      ပြီးရင် ပုံကို လက်ရှိနေရာကနေ အောက်နည်းနည်း ချလိုက်ပါတယ် */
+      .product img {
+        height: 150px;
+        width: fit-content;
+        position: relative;
+        top: 50px;
+        left: 1rem;
+        transition: 0.5s;
+      }
+
+      .product .card-title {
+        margin-top: 50px;
+      }
+
+      .product:hover img {
+        transform: scale(1.05) rotate(-10deg);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <!-- container size ကသေးလို့ col-10 အကျယ်လောက်ကို container အဖြစ်ယူတာပါ -->
+      <div class="row justify-content-center">
+        <div class="col-10">
+          <!-- wrapper container start -->
+          <div class="">
+            <div class="row">
+              <div class="col-8 min-vh-100 border-end">
+                <!-- header -->
+                <div
+                  class="d-flex justify-content-between align-items-end my-2"
+                >
+                  <!-- left-side -->
+                  <div class="">
+                    <h4 class="text-primary mb-0">My Shop</h4>
+                    <small class="text-black-50">Bootstrap & jQuery</small>
+                  </div>
+
+                  <!-- right-size -->
+                  <div class="d-flex justify-content-end">
+                    <div class="me-2">
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="search"
+                        placeholder="Search Item"
+                      />
+                    </div>
+                    <div class="">
+                      <select name="" class="form-control" id="category">
+                        <option value="0">All Category</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <!-- item carts -->
+                <div
+                  id="products"
+                  class="row row-cols-1 row-cols-md-3 g-4"
+                ></div>
+              </div>
+              <div class="col-4"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./node_modules/jquery/dist/jquery.js"></script>
+    <script>
+      // card တွေက စာကြောင့် ရှည်နေတာ ဒါကြောင့် စာကို တိုအောင် လုပ်ပါတယ်
+      // description ကို တိုအောင် လုပ်ပါတယ်
+      function toShort(str, max = 100) {
+        if (str.length > max) {
+          return str.substring(0, max) + ".....";
+        }
+
+        return str;
+      }
+      $.get("https://fakestoreapi.com/products", function (data) {
+        console.log(data);
+        data.map((product) => {
+          console.log(product);
+          $("#products").append(`<div class="col">
+            <div class="card product pt-၄" >
+                  <img src="${product.image}" class="card-img-top" alt="..." />
+                  <div class="card-body border rounded">
+                    <h5 class="card-title text-nowrap overflow-hidden text-primary">${
+                      product.title
+                    }</h5>
+                    <p class="card-text text-black-50">
+                      ${toShort(product.description)}
+                    </p>
+                   <div class="d-flex justify-content-between mt-3 align-items-end">
+                    <span class="fw-bold h4 mb-0">$${product.price}</span>
+                    <button class="btn btn-outline-primary">
+                      
+                      Add
+                      <i class="fas fa-cart-plus"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div></div>`);
+        });
+      });
+    </script>
+  </body>
+</html>
