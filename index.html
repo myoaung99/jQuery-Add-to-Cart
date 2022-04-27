@@ -149,7 +149,7 @@
       // fetch data from fake store api
       $.get("https://fakestoreapi.com/products", function (data) {
         products = data;
-        console.log(products);
+
         toShow(products);
         addCategory(products);
       });
@@ -205,7 +205,6 @@
         let category = [];
         products.map((product) => {
           if (!category.includes(product.category)) {
-            console.log(product.category);
             category.push(product.category);
           } else {
             return;
