@@ -34,6 +34,13 @@
         transition: 0.5s;
       }
 
+      .cart-image {
+        height: 50px;
+        width: fit-content;
+
+        transition: 0.5s;
+      }
+
       .product .card-title {
         margin-top: 50px;
       }
@@ -49,6 +56,18 @@
         color: gray;
         text-align: center;
       }
+
+      .item-shop {
+        max-height: 100vh;
+        overflow-y: scroll;
+        overflow-x: hidden;
+      }
+
+      .checkout-cart {
+        max-height: 100vh;
+        overflow-y: scroll;
+        overflow-x: hidden;
+      }
     </style>
   </head>
   <body>
@@ -59,7 +78,7 @@
           <!-- wrapper container start -->
           <div class="">
             <div class="row">
-              <div class="col-8 min-vh-100 border-end">
+              <div class="col-8 min-vh-100 border-end item-shop">
                 <!-- header -->
                 <div
                   class="d-flex justify-content-between align-items-end my-2"
@@ -93,7 +112,27 @@
                   class="row row-cols-1 row-cols-md-3 g-4"
                 ></div>
               </div>
-              <div class="col-4"></div>
+              <!-- Checkout Cart Start -->
+              <div class="col-4 border-end checkout-cart mb-4">
+                <div
+                  class="d-flex justify-content-between align-items-center my-2 px-1"
+                >
+                  <!-- left-side -->
+                  <div class="">
+                    <h4 class="text-primary mb-0">My Cart</h4>
+                    <small class="text-black-50">Add to Cart</small>
+                  </div>
+
+                  <!-- right-size -->
+                  <div class="d-flex align-items-center">
+                    <h4 class="mx-2 cart-item-amount">0</h4>
+                    <i class="fas fa-cart-shopping text-primary fa-2x"></i>
+                  </div>
+                </div>
+                <!-- cart item card -->
+                <div id="cart-items"></div>
+                <div class="cart-total"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -104,6 +143,17 @@
     <script>
       // card တွေက စာကြောင့် ရှည်နေတာ ဒါကြောင့် စာကို တိုအောင် လုပ်ပါတယ်
       // description ကို တိုအောင် လုပ်ပါတယ်
+
+      let products = [];
+
+      // fetch data from fake store api
+      $.get("https://fakestoreapi.com/products", function (data) {
+        products = data;
+        console.log(products);
+        toShow(products);
+        addCategory(products);
+      });
+
       function toShort(str, max = 100) {
         if (str.length > max) {
           return str.substring(0, max) + ".....";
@@ -112,19 +162,18 @@
         return str;
       }
 
-      let products = [];
-
-      // toshow သည် products container ထဲကို append လုပ်တာ ဖြစ်တဲ့အတွက် ရှာပြီးတွေ့တာတွေကိုလည်း
-      // append လုပ်နေတယ် အဲ့တာကြောင့် append/ မထည့်ခင် container ကို အရင် ဘာမှမရှိအောင်
-      //အရင်လုပ်ရမယ်
+      // ဝင်လာတဲ့ array ကို ui ထုတ်ပြတာပါ
       function toShow(product) {
-        // ဝင်လာတဲ့ array ကို ui ထုတ်ပြတာပါ
+        // toshow သည် products container ထဲကို append လုပ်တာ ဖြစ်တဲ့အတွက် ရှာပြီးတွေ့တာတွေကိုလည်း
+        // append လုပ်နေတယ် အဲ့တာကြောင့် append/ မထည့်ခင် container ကို အရင် ဘာမှမရှိအောင်
+        // အရင်လုပ်ရမယ်
         $("#products").empty();
         if (product.length === 0) {
           $("#products").append(`<p class="not-found">No such item...</p>`);
         }
         product.map((product) => {
-          $("#products").append(`<div class="col">
+          $("#products").append(`
+          <div class="col">
             <div class="card product pt-၄" >
                   <img src="${product.image}" class="card-img-top" alt="..." />
                   <div class="card-body border rounded">
@@ -135,8 +184,12 @@
                       ${toShort(product.description)}
                     </p>
                    <div class="d-flex justify-content-between mt-3 align-items-end">
-                    <span class="fw-bold h4 mb-0">$${product.price}</span>
-                    <button class="btn btn-outline-primary">
+                    <span class="fw-bold h4 mb-0 item-in-cart-cost">$${
+                      product.price
+                    }</span>
+                    <button class="btn btn-outline-primary" id="add-to-cart" data-id=${
+                      product.id
+                    }>
 
                       Add
                       <i class="fas fa-cart-plus"></i>
@@ -169,13 +222,72 @@
         });
       }
 
-      $.get("https://fakestoreapi.com/products", function (data) {
-        products = data;
-        console.log(products);
-        toShow(products);
-        addCategory(products);
-      });
+      // cart ထဲမှာ ရှိနေတဲ့ item တွေကို ကြည့်ပြီး သူ့ဘာသာ ပေါင်းတာ နှုတ်တာလုပ်တယ်
+      // ပေါင်းတာ နှုတ်တာကို item-in-cart-price innerHTML ကို မူတည်ပြီး အဓိကတွက်ချက်တာ
+      function cartItemTotal() {
+        // cart ထဲမှာ item တစ်ခုမှ မရှိတော့တဲ့ အခါ
+        if ($(".item-in-cart-price").toArray().length === 0) {
+          $(".cart-item-amount").html("0");
+          $(".cart-total").empty();
+          return;
+        }
 
+        const total = $(".item-in-cart-price")
+          .toArray()
+          .map((el) => Number(el.innerHTML))
+          .reduce((x, y) => x + y)
+          .toFixed(2);
+
+        $(".cart-total")
+          .html(`<div class="d-flex justify-content-between align-items-end">
+                    <h4>Total</h4>
+                    <h4>$<span class="cart-total-cost">${total}</span></h4>
+                  </div>`);
+
+        $(".cart-item-amount").html($(".item-in-cart-price").length);
+      }
+
+      // cart ထဲကို append သွားလုပ်တာ ဖြစ်ပါတယ်
+      function showToCart(product) {
+        $("#cart-items")
+          .append(`<div class="card border-0 item-in-cart" data-id=${product.id}>
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-end">
+                      <img src=${product.image} class="cart-image" alt="" />
+                      <button class="btn btn-outline-danger remove-from-cart" data-id=${product.id}>
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </div>
+
+                    <p>${product.title}</p>
+
+                    <div class="d-flex justify-content-between align-items-end">
+                      <div class="d-flex">
+                        <button class="btn btn-outline-primary amount-handler minus">
+                          <i class="fas fa-minus"></i>
+                        </button>
+                        <input
+                        value=1
+                        unit-price=${product.price}
+                          min="1"
+                          type="number"
+                          class="form-control w-25 mx-2"
+                          id="amount"
+                        />
+                        <button class="btn btn-outline-primary amount-handler plus">
+                          <i class="fas fa-plus"></i>
+                        </button>
+                      </div>
+
+                      <p class="m-0">$<span class="item-in-cart-price">${product.price}</span></p>
+                    </div>
+
+                    <hr />
+                  </div>
+                </div>`);
+      }
+
+      // search filter ဖြစ်ပါတယ်
       $("#search").on("keyup", function () {
         console.log("type");
         $("#category").prop("selectedIndex", 0);
@@ -201,7 +313,7 @@
         toShow(filteredProduct);
       });
 
-      // select က onchange ဖြစ်သွားတဲ့အခါ
+      // filter method ထဲက တစ်ခုဖြစ်တဲ့ select filter ပါ
       $("#category").on("change", function () {
         $("#search").val("");
         const category = $(this).val();
@@ -214,6 +326,84 @@
 
           toShow(filteredProduct);
         }
+      });
+
+      // add ခလုပ်နှိပ်လိုက်ရင် cart ထဲကို ထည့်ပေးတာပါ
+      // cart ထဲမှာ ရှိပြီးသား item ကို add တာဆိုရင် နှစ်ခုမဖြစ်နေအောင် စစ်ဖို့လို
+      $("#products").delegate("#add-to-cart", "click", function () {
+        // data-id က ခလုပ်မှာ ထည့်ထားတဲ့ api ကလာတဲ့ item-id
+
+        // add နှိပ်ခံရတဲ့ item
+        const currentId = $(this).attr("data-id");
+        // cart ထဲရောက်နေတဲ့ item တွေရဲ့ id
+        const itemInCart = $(".item-in-cart")
+          .toArray()
+          .map((el) => el.getAttribute("data-id"));
+
+        // ခု add နှိပ်လိုက်တဲ့ item id က cart ထဲရောက်နေတဲ့ item id တွေထဲ မပါဘူးဆိုမှ...
+        if (!itemInCart.includes(currentId)) {
+          // item က တခါထည့် တခုတည်းပဲ ဖြစ်မှာ
+          // ဒါမဲ့ filter က array ထုတ်ပေးပြီး လိုတာက object ဖြစ်နေလို့
+          // တခါတည်း access ယူလိုက်တာ
+          const productInfo = products.filter(
+            (product) => product.id == currentId
+          )[0];
+
+          // cart ထဲ append သွားလုပ်
+          showToCart(productInfo);
+          cartItemTotal();
+        }
+      });
+
+      // check-out form ထဲက item ကို remove လုပ်တာပါ
+      $("#cart-items").delegate(".remove-from-cart", "click", function () {
+        const selectedCartItem = $(this).parentsUntil("#cart-items").remove();
+        cartItemTotal();
+      });
+
+      // checkout form ထဲမှာ အရေအတွက် အတိုးအလျော့လုပ်တာပါ
+      $("#cart-items").delegate(".amount-handler", "click", function () {
+        let currentAmount = Number($(this).siblings("input").val());
+        const unitPrice = Number($(this).siblings("input").attr("unit-price"));
+
+        // ခလုပ်နှိပ်ပြီး Quantity အတိုးအလျော့လုပ်တာပါ
+        if ($(this).hasClass("minus") && currentAmount > 1) {
+          currentAmount -= 1;
+        } else if ($(this).hasClass("plus")) {
+          currentAmount += 1;
+        } else {
+          return;
+        }
+
+        // input value ပြောင်းတာပါ
+        $(this).siblings("input").val(currentAmount);
+
+        // show price to item-in-cart-price <span>
+        $(this)
+          .parent()
+          .siblings("p")
+          .find(".item-in-cart-price")
+          .html((currentAmount * unitPrice).toFixed(2));
+        cartItemTotal();
+      });
+
+      // လက်နဲ့ ရိုက်တာ 0 သို့ 0 အောက်ဆို မတွက်တော့ဘဲ alert ထုတ်
+      $("#cart-items").delegate("#amount", "focusout", function () {
+        let currentAmount = Number($(this).val());
+        if (currentAmount < 1) {
+          $(".cart-total").html(`<div>
+                    <h4>The amount of items must not lower than 1</h4>
+                  </div>`);
+          return;
+        }
+        const unitPrice = Number($(this).attr("unit-price"));
+
+        $(this)
+          .parent()
+          .siblings("p")
+          .find(".item-in-cart-price")
+          .html(currentAmount * unitPrice);
+        cartItemTotal();
       });
     </script>
   </body>
